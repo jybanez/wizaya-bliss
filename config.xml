@@ -122,9 +122,7 @@
     <plugin name="cordova-plugin-whitelist" spec="~1.2.2" />
     <plugin name="cordova-plugin-bluetooth-printer" spec="https://github.com/jybanez/BluetoothPrinter" />
     <plugin name="cordova-plugin-camera" spec="https://github.com/apache/cordova-plugin-camera.git" />
-	<!--
 	<preference name="android-targetSdkVersion" value="28" />
-	-->
 	
 	<edit-config target="NSPhotoLibraryUsageDescription" file="*-Info.plist" mode="merge">
 		<string>Need to access photo library for uploading photos for your account profile and product inquiries.</string>

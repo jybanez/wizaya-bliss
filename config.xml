@@ -111,9 +111,7 @@
     </platform>
 	
 	<preference name="windows-target-version" value="10.0" />
-	<!--
-	<preference name="phonegap-version" value="cli-8.1.1" />
-	-->
+	<preference name="phonegap-version" value="cli-9.0.0" />
 	<preference name="AndroidLaunchMode" value="singleTask"/>
 	
 	<plugin name="cordova-plugin-statusbar"/>

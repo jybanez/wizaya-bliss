@@ -64,6 +64,14 @@
 		<icon density="xhdpi" src="www/res/icon/android/xhdpi.png" />
 		<icon density="xxhdpi" src="www/res/icon/android/xxhdpi.png" />
 		<icon density="xxxhdpi" src="www/res/icon/android/xxxhdpi.png" />
+		
+		<splash density="ldpi" src="www/res/icon/android/ldpi.png" />
+		<splash density="mdpi" src="www/res/icon/android/mdpi.png" />
+		<splash density="hdpi" src="www/res/icon/android/hdpi.png" />
+		<splash density="xhdpi" src="www/res/icon/android/xhdpi.png" />
+		<splash density="xxhdpi" src="www/res/icon/android/xxhdpi.png" />
+		<splash density="xxxhdpi" src="www/res/icon/android/xxxhdpi.png" />
+		
 		<!--  Portrait  -->
 		<splash density="port-ldpi" src="www/res/screen/android/splash-port-ldpi.png" />
 		<splash density="port-mdpi" src="www/res/screen/android/splash-port-mdpi.png" />

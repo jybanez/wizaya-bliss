@@ -130,6 +130,8 @@
 	<preference name="phonegap-version" value="cli-9.0.0" />
 	<preference name="AndroidLaunchMode" value="singleTask"/>
 	
+	<preference name="Fullscreen" value="true" />
+	
 	<plugin name="cordova-plugin-statusbar"/>
     <plugin name="cordova-plugin-geolocation" />
     <plugin name="cordova-plugin-device" />
@@ -142,6 +144,8 @@
 	<plugin name="cordova-plugin-dialogs" />
 	<plugin name="cordova-plugin-file" />
 	<plugin name="cordova-plugin-vibration" />
+	
+	<plugin name="cordova-plugin-fullscreen" />
 	
     <plugin name="cordova-plugin-bluetooth-printer" spec="https://github.com/jybanez/BluetoothPrinter" />
     <plugin name="cordova-plugin-camera" spec="https://github.com/apache/cordova-plugin-camera.git" />

@@ -41,7 +41,7 @@ var App = {
 								new Element('style',{type:'text/css'}).set('html',result.inlineStyles).inject(head);	
 								
 								var body = document.id(window.document.body);
-								body.getElement('.mainAppContainer').set('html',result.body);
+								body.set('html',result.body);
 								(function(){
 											
 									new Asset.javascript(result.script,{

@@ -60,6 +60,12 @@
 		<preference name="android-targetSdkVersion" value="28" />
 		<preference name="android-minSdkVersion" value="19" />
 		
+		<config-file parent="/*" target="AndroidManifest.xml" xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+			<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+        </config-file>
+		
 		<icon density="ldpi" src="www/res/icon/android/ldpi.png" />
 		<icon density="mdpi" src="www/res/icon/android/mdpi.png" />
 		<icon density="hdpi" src="www/res/icon/android/hdpi.png" />

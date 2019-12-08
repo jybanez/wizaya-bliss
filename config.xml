@@ -130,8 +130,6 @@
 	<preference name="phonegap-version" value="cli-9.0.0" />
 	<preference name="AndroidLaunchMode" value="singleTask"/>
 	
-	<preference name="Fullscreen" value="true" />
-	
 	<plugin name="cordova-plugin-statusbar"/>
     <plugin name="cordova-plugin-geolocation" />
     <plugin name="cordova-plugin-device" />

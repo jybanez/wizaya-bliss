@@ -147,6 +147,7 @@
 	
     <plugin name="cordova-plugin-bluetooth-printer" spec="https://github.com/jybanez/BluetoothPrinter" />
     <plugin name="cordova-plugin-camera" spec="https://github.com/apache/cordova-plugin-camera.git" />
+	<plugin name="phonegap-plugin-speech-synthesis" spec="https://github.com/macdonst/SpeechSynthesisPlugin" />
 	<plugin name="cordova-plugin-background-mode" />
 	
 	

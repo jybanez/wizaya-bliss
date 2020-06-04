@@ -6,7 +6,6 @@ html, body {
 	margin:0;
 	height:100vh;
 	width:100vw;
-	background-color:#fff;
 }
 
 .splash {
@@ -25,4 +24,54 @@ html, body {
 
 .splash.active {
 	display:block;
+}
+body.empty {
+	overflow:hidden;
+}
+body.empty:before {
+	display:block;
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+	content:" ";
+	background-color:#fff;
+	background-image:url(../images/icon.png);
+	background-position:center center;
+	background-repeat:no-repeat;
+	z-index:1;	
+}
+
+.assetsLoader {
+	position: fixed;
+    display: inline-block;
+    border: #ccc 1px solid;
+    border-radius: 4px;
+    padding: 4px 4px 4px 20px;
+    bottom: 10px;
+    right: 10px;
+    width: auto;
+    line-height: 14px;
+    z-index: 1;
+    background-position:2px center;
+    background-color:rgba(255,255,255,0.85);
+    background-repeat:no-repeat;
+    font-size: 11px;
+    color: #666;
+    transform:translateX(150%);
+    transition:transform 0.2s ease-in-out;
+    box-shadow:0px 0px 4px #ccc;
+}
+
+.assetsLoader.visible {
+	transform:translateX(0);
+}
+
+.assetsLoader.loading {
+	background-image:url(../images/assetsloader.gif);
+}
+
+.assetsLoader.check {
+	background-image:url(../images/check.png);
 }

@@ -65,6 +65,9 @@
         -->
 	</platform>
 	<platform name="android">
+		<config-file parent="/*" target="AndroidManifest.xml">
+			<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+		</config-file>
 		<preference name="SplashMaintainAspectRatio" value="true" />
 		<preference name="SplashShowOnlyFirstTime" value="true" />
 		<icon density="ldpi" src="res/icon/android/ldpi.png"/>

@@ -1,3 +1,105 @@
+(function(){			
+	// Override Console.log for debugging purposes in Android Studio
+	var oldConsoleLog = console.log;
+	var isFunction = function(obj) {
+	  return !!(obj && obj.constructor && obj.call && obj.apply);
+	};
+	
+	var stackLimit = 3;
+	
+	var arrayToString = function(arr, level) {
+		var level = $pick(level,0);
+		if (level>stackLimit) {
+			return '(Stack Limit Reached)';
+		}  
+		var spacer = level?"\t".repeat(level):'';
+		var lines = new Array();
+		arr.each(function(val){
+			if (!isFunction(val)) {
+				if($defined(val)) {
+					switch($type(val)){
+						case 'array':
+							val = arrayToString(val,level+1);
+							break;
+						case 'object':
+							val = objectToString(val,level+1);
+							break;
+						case 'string':
+							val = '"'+val+'"';
+							break;
+					}	
+				} else {
+					val = 'null';
+				}
+				lines.push(spacer+"\t"+val);	
+			}
+		});
+		var content = lines.length?lines.join(",\n"):'';
+		var glue = lines.length?"\n":"";
+		return ['Array [',content,(lines.length?spacer:'')+']'].join(glue);
+	};
+	
+	var objectToString = function(obj, level) {
+		var level = $pick(level,0);
+		if (level>stackLimit) {
+			return '(Stack Limit Reached)';
+		}
+		var spacer = level?"\t".repeat(level):'';
+		var lines = new Array();
+		for(var key in obj) {
+			var val = obj[key];
+			if (!isFunction(val)) {
+				if($defined(val)) {
+					switch($type(val)){
+						case 'array':
+							val = arrayToString(val,level+1);
+							break;
+						case 'object':
+							val = objectToString(val,level+1);
+							break;
+						case 'string':
+							val = '"'+val+'"';
+							break;
+					}	
+				} else {
+					val = 'null';
+				}
+				
+				lines.push(spacer+"\t"+key+' : '+val);	
+			}
+		}
+		var content = lines.length?lines.join(",\n"):'';
+		var glue = lines.length?"\n":"";
+		return ['Object {',content,(lines.length?spacer:'')+'}'].join(glue);
+	};
+	
+	console.log = function(){
+		var error = new Error();
+		var callerLine = error.stack.split("\n")[3];
+		var callerIndex = callerLine.indexOf("at ");
+		var lineNumber = callerLine.slice(callerIndex+2, callerLine.length).trim();
+
+		var lines = new Array();
+		for(var i=0;i<arguments.length;i++) {
+			var arg = arguments[i];
+			var type = $type(arg);
+			//oldConsoleLog(' - '+type+' - ');
+			switch(type) {
+				case 'array':
+					lines.push(arrayToString(arg));
+					break;
+				case 'object':
+					lines.push(objectToString(arg));
+					break;
+				default:
+					lines.push(arg);
+			}
+		}
+		oldConsoleLog(lineNumber+"\n"+(lines.length?lines.join("\n"):''));
+	};
+})();
+
+
 var App = {
 	getInstance:function(){
 		return App.$instance;
@@ -34,6 +136,9 @@ var App = {
 				onReady:function(instance){
 					this.$fileSystem = instance;
 					this.run();
+					//this.$fileSystem.clear(function(){
+					//	this.run();
+					//}.bind(this));
 					//this.reset();
 				}.bind(this)
 			});
@@ -225,7 +330,9 @@ var App = {
 		initialize:function(options){
 			this.setOptions(options);
 			window.requestFileSystem(window[this.options.storage], this.getQuota(), function (fileSystem) {
+				console.log('Filesystem Ready',cordova.file);
 				this.$root = fileSystem.root;
+				
 				console.log('file system open: ' + fileSystem.name);
 				console.log(fileSystem);
 				this.fireEvent('onReady',[this]);
@@ -283,7 +390,10 @@ var App = {
 		},
 		getEntry:function(path,onSuccess,onError){
 			var name = this.getBase()+(path.charAt(0)=='/'?path.substr(1):path);
-			//console.log(name);
+			console.log('FileSystem:getEntry:',{
+				path:path,
+				name:name
+			});
 			window.resolveLocalFileSystemURL(name,onSuccess,onError);
 			return this;
 		},
@@ -469,6 +579,7 @@ var App = {
 		execute:function(list,onComplete){
 			if (list.length) {
 				var item = list.shift();
+				console.log('Localizer check file : ',item.source);
 				this.$fileSystem.getEntry(item.target,function(fileEntry){
 					console.log('Locallizer file exists ',item.target);
 					this.fireEvent('onExist',[item,fileEntry,this]);
@@ -488,6 +599,7 @@ var App = {
 					}	
 					
 				}.bind(this),function(){
+					console.log('Locallizer file does not exiss ',item.target);
 					this.request(item,function(blob){
 						this.process(item,blob,function(item,blob){
 							this.save(item,blob,function(){

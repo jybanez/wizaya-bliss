@@ -289,6 +289,7 @@ var App = {
 		},
 		run:function(){
 			this.getData(function(data){
+				console.log('App Data',data);
 				var body = document.id(window.document.body).appendHTML(data.body,'top');
 				var head = document.id(window.document.head);
 				//this.startSpin('Updating. Please wait...');

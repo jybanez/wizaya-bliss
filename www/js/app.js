@@ -151,7 +151,7 @@ var App = {
 			});
 			App.$instance = this;
 			console.log(device.platform);
-			if (['android'].contains(device.platform)) {
+			if (['android'].contains(device.platform.toLowerCase())) {
 				new App.Interface.Log();	
 			}
 		},

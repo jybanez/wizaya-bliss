@@ -150,7 +150,8 @@ var App = {
 				}.bind(this)
 			});
 			App.$instance = this;
-			if (['android'].contains(device.cordova)) {
+			console.log(device.platform);
+			if (['android'].contains(device.platform)) {
 				new App.Interface.Log();	
 			}
 		},

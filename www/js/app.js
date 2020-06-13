@@ -1,105 +1,3 @@
-(function(){			
-	// Override Console.log for debugging purposes in Android Studio
-	var oldConsoleLog = console.log;
-	var isFunction = function(obj) {
-	  return !!(obj && obj.constructor && obj.call && obj.apply);
-	};
-	
-	var stackLimit = 3;
-	
-	var arrayToString = function(arr, level) {
-		var level = $pick(level,0);
-		if (level>stackLimit) {
-			return '(Stack Limit Reached)';
-		}  
-		var spacer = level?"\t".repeat(level):'';
-		var lines = new Array();
-		arr.each(function(val){
-			if (!isFunction(val)) {
-				if($defined(val)) {
-					switch($type(val)){
-						case 'array':
-							val = arrayToString(val,level+1);
-							break;
-						case 'object':
-							val = objectToString(val,level+1);
-							break;
-						case 'string':
-							val = '"'+val+'"';
-							break;
-					}	
-				} else {
-					val = 'null';
-				}
-				lines.push(spacer+"\t"+val);	
-			}
-		});
-		var content = lines.length?lines.join(",\n"):'';
-		var glue = lines.length?"\n":"";
-		return ['Array [',content,(lines.length?spacer:'')+']'].join(glue);
-	};
-	
-	var objectToString = function(obj, level) {
-		var level = $pick(level,0);
-		if (level>stackLimit) {
-			return '(Stack Limit Reached)';
-		}
-		var spacer = level?"\t".repeat(level):'';
-		var lines = new Array();
-		for(var key in obj) {
-			var val = obj[key];
-			if (!isFunction(val)) {
-				if($defined(val)) {
-					switch($type(val)){
-						case 'array':
-							val = arrayToString(val,level+1);
-							break;
-						case 'object':
-							val = objectToString(val,level+1);
-							break;
-						case 'string':
-							val = '"'+val+'"';
-							break;
-					}	
-				} else {
-					val = 'null';
-				}
-				
-				lines.push(spacer+"\t"+key+' : '+val);	
-			}
-		}
-		var content = lines.length?lines.join(",\n"):'';
-		var glue = lines.length?"\n":"";
-		return ['Object {',content,(lines.length?spacer:'')+'}'].join(glue);
-	};
-	
-	console.log = function(){
-		var error = new Error();
-		var callerLine = error.stack.split("\n")[3];
-		var callerIndex = callerLine.indexOf("at ");
-		var lineNumber = callerLine.slice(callerIndex+2, callerLine.length).trim();
-
-		var lines = new Array();
-		for(var i=0;i<arguments.length;i++) {
-			var arg = arguments[i];
-			var type = $type(arg);
-			//oldConsoleLog(' - '+type+' - ');
-			switch(type) {
-				case 'array':
-					lines.push(arrayToString(arg));
-					break;
-				case 'object':
-					lines.push(objectToString(arg));
-					break;
-				default:
-					lines.push(arg);
-			}
-		}
-		oldConsoleLog(lineNumber+"\n"+(lines.length?lines.join("\n"):''));
-	};
-})();
-
-
 var App = {
 	getInstance:function(){
 		return App.$instance;
@@ -121,6 +19,114 @@ var App = {
 			this.splash.removeClass(this.options.classes.active);
 		}
 	}),
+	Interface:{
+		Log:new Class({
+			initialize:function(){
+				var oldConsoleLog = console.log;
+				var isFunction = function(obj) {
+				  return !!(obj && obj.constructor && obj.call && obj.apply);
+				};
+				
+				var stackLimit = 3;
+				
+				var arrayToString = function(arr, level) {
+					var level = $pick(level,0);
+					if (level>stackLimit) {
+						return '(Stack Limit Reached)';
+					}  
+					var spacer = level?"\t".repeat(level):'';
+					var lines = new Array();
+					arr.each(function(val){
+						if (!isFunction(val)) {
+							if($defined(val)) {
+								switch($type(val)){
+									case 'array':
+										val = arrayToString(val,level+1);
+										break;
+									case 'object':
+										val = objectToString(val,level+1);
+										break;
+									case 'string':
+										val = '"'+val+'"';
+										break;
+								}	
+							} else {
+								val = 'null';
+							}
+							lines.push(spacer+"\t"+val);	
+						}
+					});
+					var content = lines.length?lines.join(",\n"):'';
+					var glue = lines.length?"\n":"";
+					return ['Array [',content,(lines.length?spacer:'')+']'].join(glue);
+				};
+				
+				var objectToString = function(obj, level) {
+					var level = $pick(level,0);
+					if (level>stackLimit) {
+						return '(Stack Limit Reached)';
+					}
+					var spacer = level?"\t".repeat(level):'';
+					var lines = new Array();
+					for(var key in obj) {
+						var val = obj[key];
+						if (!isFunction(val)) {
+							if($defined(val)) {
+								switch($type(val)){
+									case 'array':
+										val = arrayToString(val,level+1);
+										break;
+									case 'object':
+										val = objectToString(val,level+1);
+										break;
+									case 'string':
+										val = '"'+val+'"';
+										break;
+								}	
+							} else {
+								val = 'null';
+							}
+							
+							lines.push(spacer+"\t"+key+' : '+val);	
+						}
+					}
+					var content = lines.length?lines.join(",\n"):'';
+					var glue = lines.length?"\n":"";
+					return ['Object {',content,(lines.length?spacer:'')+'}'].join(glue);
+				};
+				
+				console.log = function(){
+					var error = new Error();
+					var callerLine = error.stack.split("\n")[3];
+					if ($defined(callerLine)) {
+						var callerIndex = callerLine.indexOf("at ");
+						var lineNumber = callerLine.slice(callerIndex+2, callerLine.length).trim();
+				
+						var lines = new Array();
+						for(var i=0;i<arguments.length;i++) {
+							var arg = arguments[i];
+							var type = $type(arg);
+							//oldConsoleLog(' - '+type+' - ');
+							switch(type) {
+								case 'array':
+									lines.push(arrayToString(arg));
+									break;
+								case 'object':
+									lines.push(objectToString(arg));
+									break;
+								default:
+									lines.push(arg);
+							}
+						}
+						oldConsoleLog(lineNumber+"\n"+(lines.length?lines.join("\n"):''));
+					} else {
+						oldConsoleLog.apply(null,arguments);
+					}
+					
+				};
+			}
+		})
+	},
 	Loader:new Class({
 		Implements:[Events,Options],
 		options:{
@@ -136,13 +142,17 @@ var App = {
 				onReady:function(instance){
 					this.$fileSystem = instance;
 					this.run();
-					//this.$fileSystem.clear(function(){
-					//	this.run();
-					//}.bind(this));
+					return;
+					this.$fileSystem.clear(function(){
+						this.run();
+					}.bind(this)); 
 					//this.reset();
 				}.bind(this)
 			});
 			App.$instance = this;
+			if (['android'].contains(device.cordova)) {
+				new App.Interface.Log();	
+			}
 		},
 		requestData:function(onRequest,onError){
 			new Request({
@@ -164,7 +174,7 @@ var App = {
 					this.startSpin('Downloading Updates. Please wait...');
 					this.requestData(function(result){			
 						this.$data = Json.decode(result);
-						this.$fileSystem.createFile(this.$fileSystem.getRoot(),{
+						this.$fileSystem.createFile(this.$fileSystem.getBaseEntry(),{
 							name:'app.json',
 							content:[result]
 						},function(entry){
@@ -245,14 +255,24 @@ var App = {
 				}.bind(this),onError);
 			}.bind(this),onError);
 		},
+		/*
 		toLocalURL:function(url){
-			var base = this.$fileSystem.getBase();
-			var host = url.toURI().set('directory','').set('file','').set('fragment','').set('query','').toString(),
-				path = url.replace(host,this.$fileSystem.getRoot().toURL().replace(base,'/'));	 	
+			var url = url.toURI();
+			var base = this.$fileSystem.getBase().toURI();
+			url.set('scheme',base.get('scheme'))
+				.set('host',base.get('host'))
+				.set('directory',base.get('directory')+url.get('directory'))
+				;	
+			//return url.toString();
+			//var host = url.toURI().set('directory','').set('file','').set('fragment','').set('query','').toString(),
+			//	path = url.replace(host,base);	 	
 			return path;
 		},
+		*/
 		loadAsset:function(source,onLoad){
-			var target = this.toLocalURL(source);
+			var url = source.toURI();
+			var target = url.get('directory')+url.get('file');
+			console.log('App Load Asset',target);
 			this.$fileSystem.getEntry(target,function(fileEntry){
 				onLoad(fileEntry.toURL());
 			}.bind(this),function(){
@@ -272,7 +292,7 @@ var App = {
 				var head = document.id(window.document.head);
 				//this.startSpin('Updating. Please wait...');
 				this.loadAsset(data.stylesheet,function(styleUrl){
-					//console.log(data.stylesheet,styleUrl);
+					console.log(data.stylesheet,styleUrl);
 					new Asset.css(styleUrl,{
 						onload:function(){
 							new Element('style',{
@@ -331,11 +351,19 @@ var App = {
 			this.setOptions(options);
 			window.requestFileSystem(window[this.options.storage], this.getQuota(), function (fileSystem) {
 				console.log('Filesystem Ready',cordova.file);
-				this.$root = fileSystem.root;
+				this.$rootEntry = fileSystem.root;
 				
 				console.log('file system open: ' + fileSystem.name);
 				console.log(fileSystem);
-				this.fireEvent('onReady',[this]);
+				
+				this.getEntry('/',function(result){
+					this.$baseEntry = result;
+					
+					this.fireEvent('onReady',[this]);
+				}.bind(this),function(e){
+					console.log(e);
+				}.bind(this));
+				
 			}.bind(this), function(){
 				console.log('ON Request File System Error',arguments);
 			}.bind(this));
@@ -343,11 +371,14 @@ var App = {
 		getQuota:function(){
 			return this.options.quota*1024*1024; 
 		},
-		getRoot:function(){
+		getRootEntry:function(){
 			return this.$root;
 		},
+		getBaseEntry:function(){
+			return this.$baseEntry;
+		},
 		isEmpty:function(onEmpty,onNotEmpty){
-			this.readDirectory(this.getRoot(),false,function(entries){
+			this.readDirectory(this.getBaseEntry(),false,function(entries){
 				console.log('isEmpty',entries.length);
 				if (entries.length) {
 					if ($type(onNotEmpty)=='function') {
@@ -361,7 +392,7 @@ var App = {
 			}.bind(this));
 		},
 		clear:function(onClear,onError){
-			this.readDirectory(this.getRoot(),false,function(entries){
+			this.readDirectory(this.getBaseEntry(),false,function(entries){
 				console.log('Clear',entries.length);
 				if (entries.length) {
 					entries.forEach(function(entry){
@@ -383,13 +414,19 @@ var App = {
 			}.bind(this),onError);
 			return this;
 		},
+		getStorageDirectory:function(){
+			return cordova.file[this.options.storage=='PERSISTENT'?'dataDirectory':'cacheDirectory'];
+		},
 		getBase:function(){
-			var host = cordova.file.applicationDirectory;
-			var directory = cordova.file[this.options.storage=='PERSISTENT'?'dataDirectory':'cacheDirectory'];
-			return directory.replace(/file\:\/\/\//,host);
+			return this.options.storage.toLowerCase();
+		},
+		getCDV:function(path){
+			return 'cdvfile://localhost/'+this.getBase()+path;
 		},
 		getEntry:function(path,onSuccess,onError){
-			var name = this.getBase()+(path.charAt(0)=='/'?path.substr(1):path);
+			//var name = path.charAt(0)=='/'?this.getBase()+path.substr(1):path;
+			//console.log('FileSystem:Get Entry',path);
+			var name = this.getCDV(path);
 			console.log('FileSystem:getEntry:',{
 				path:path,
 				name:name
@@ -398,7 +435,7 @@ var App = {
 			return this;
 		},
 		createFile:function(dirEntry, fileData, onCreate, onError) {
-		    dirEntry.getFile(fileData.name, {create: true, exclusive: false}, function(fileEntry) {
+			dirEntry.getFile(fileData.name, {create: true, exclusive: false}, function(fileEntry) {
 		        fileEntry.createWriter(function (fileWriter) {
 		        	//console.log('Create File '+fileData.name);
 			        fileWriter.onwriteend = function() {
@@ -511,6 +548,7 @@ var App = {
 		},
 		setItems:function(items){
 			this.$items = items;
+			console.log('Localizer setItems:',this.$items);
 			return this;
 		},
 		getItems:function(){
@@ -529,6 +567,7 @@ var App = {
 			}.bind(this));
 			return this;
 		},
+		/*
 		localizeLinks:function(url,content){
 			var oldHost = url.toURI().set('directory','').set('file','').toString(),
 				newHost = dirEntry.toURL().replace(base,'');	 				
@@ -548,6 +587,7 @@ var App = {
 				}
 			}
 		},
+		*/
 		request:function(item,onRequest,onError){
 			var req = new XMLHttpRequest();
 			req.open('GET',item.source,true);
@@ -581,7 +621,7 @@ var App = {
 				var item = list.shift();
 				console.log('Localizer check file : ',item.source);
 				this.$fileSystem.getEntry(item.target,function(fileEntry){
-					console.log('Locallizer file exists ',item.target);
+					console.log('Localizer file exists ',item.target);
 					this.fireEvent('onExist',[item,fileEntry,this]);
 					if (this.options.overwrite) {
 						this.request(item,function(blob){
@@ -599,7 +639,7 @@ var App = {
 					}	
 					
 				}.bind(this),function(){
-					console.log('Locallizer file does not exiss ',item.target);
+					console.log('Locallizer file does not exist ',item.target);
 					this.request(item,function(blob){
 						this.process(item,blob,function(item,blob){
 							this.save(item,blob,function(){
@@ -617,15 +657,21 @@ var App = {
 			return this;
 		},
 		save:function(item,blob,onSave){
-			var uri = item.target.toURI();
+			var uri = item.source.toURI();
 			var directory = uri.get('directory'),
 				file = uri.get('file');
 			//var ext = file.split('.').pop();
 			//console.log(file,blob);
-			//console.log('Localizer Save : ',directory,file,ext);
+			console.log('Localizer Save : ',{
+				item:item,
+				uri:uri,
+				directory:directory,
+				file:file
+			});
 			this.fireEvent('onBeforeSave',[item,blob,this]);
-			this.$fileSystem.getDirectory(this.$fileSystem.getRoot(),directory,true,function(dirEntry){
-				//console.log('Saving to local '+item.source+' >> '+item.target);
+			this.$fileSystem.getDirectory(this.$fileSystem.getBaseEntry(),directory,true,function(dirEntry){
+				console.log('Saving to local '+item.source+' >> '+item.target);
+				console.log('Directory Entry',dirEntry);
 				this.$fileSystem.createFile(dirEntry,{
 					name:file,
 					blob:blob
@@ -640,6 +686,7 @@ var App = {
 						onSave(item,fileEntry);
 					}
 					this.fireEvent('onSave',[item,fileEntry,this]);
+					console.log('Save File Success',fileEntry,item);
 				}.bind(this),function(e){
 					console.log('Save File Error',directory,file);
 					console.log(e);
@@ -706,7 +753,7 @@ $extend(App.Localizer,{
 	        reader.onloadend = function() {
 	        	var base = this.$fileSystem.getBase();
 	        	var oldHost = this.$item.source.toURI().set('directory','').set('file','').toString(),
-					newHost = this.$fileSystem.getRoot().toURL().replace(base,'');	
+					newHost = base; //this.$fileSystem.getRoot().toURL().replace(base,'');	
 	            var content = reader.result;
 	            var regexp = /url\(\s*(['"]?)(.*?)\1\s*\)/ig; //RegExp('url\(\'([^\']+)\'\)','gi');
 				var urls = new Array();
@@ -719,7 +766,7 @@ $extend(App.Localizer,{
 					if (exts.contains(ext)) {
 						var item = {
 							source:match[2],
-							target:match[2].replace(oldHost,'/'+newHost),
+							target:match[2].replace(oldHost,newHost),
 							url:base+match[2].replace(oldHost,newHost)
 						};
 						//console.log(item);
@@ -758,7 +805,7 @@ $extend(App.Localizer,{
 		        	var source = this.$item.source.toURI();
 		        	
 		        	var oldHost = this.$item.source.toURI().set('directory','').set('file','').toString(),
-						newHost = this.$fileSystem.getRoot().toURL().replace(base,'');	
+						newHost = base; //this.$fileSystem.getRoot().toURL().replace(base,'');	
 		            var content = reader.result;
 		            var regexp = /\/\/\# sourceMappingURL=(.*?)\.map/igm; //RegExp('url\(\'([^\']+)\'\)','gi');
 					var urls = new Array();
@@ -766,7 +813,7 @@ $extend(App.Localizer,{
 						var sourceFile = source.set('file',match[1]+'.map').toString();
 						var item = {
 							source:sourceFile,
-							target:sourceFile.replace(oldHost,'/'+newHost)
+							target:sourceFile.replace(oldHost,newHost)
 						};
 						urls.push(item);
 					}

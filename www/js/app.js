@@ -157,7 +157,7 @@ var App = {
 				}.bind(this)
 			});
 			App.$instance = this;
-			console.log('Welcome!',BuildInfo,device);
+			console.log('Welcome!',device);
 			if (['android'].contains(device.platform.toLowerCase())) {
 				new App.Interface.Log();	
 			}

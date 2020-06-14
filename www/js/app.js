@@ -135,9 +135,16 @@ var App = {
 		$assetsUpdated:false,
 		initialize:function(app,options){
 			this.app = app;
+			var url = app.toURI();
+			this.$id = url.get('host');
+			
 			this.setOptions(options);
+			this.$body = document.id(window.document.body);
+			this.$head = document.id(window.document.head);
+			
 			this.$assets = new Array();
 			this.$isLoaded = new Array();
+			
 			App.FileSystem.getInstance('PERSISTENT',{
 				onReady:function(instance){
 					this.$fileSystem = instance;
@@ -164,7 +171,8 @@ var App = {
 		},
 		getData:function(onGet,onError){
 			if (!$defined(this.$data)) {
-				this.$fileSystem.getEntry('/app.json',function(fileEntry){
+				var fileName = this.$id+'.json';
+				this.$fileSystem.getEntry('/'+fileName,function(fileEntry){
 					this.$fileSystem.readFile(fileEntry,function(content){
 						if ($type(onGet)=='function') {
 							this.$data = Json.decode(content);
@@ -176,7 +184,7 @@ var App = {
 					this.requestData(function(result){			
 						this.$data = Json.decode(result);
 						this.$fileSystem.createFile(this.$fileSystem.getBaseEntry(),{
-							name:'app.json',
+							name:fileName,
 							content:[result]
 						},function(entry){
 							if ($type(onGet)=='function') {
@@ -290,8 +298,8 @@ var App = {
 		run:function(){
 			this.getData(function(data){
 				console.log('App Data',data);
-				var body = document.id(window.document.body).appendHTML(data.body,'top');
-				var head = document.id(window.document.head);
+				var body = this.$body.appendHTML(data.body,'top');
+				var head = this.$head;
 				//this.startSpin('Updating. Please wait...');
 				this.loadAsset(data.stylesheet,function(styleUrl){
 					console.log(data.stylesheet,styleUrl);

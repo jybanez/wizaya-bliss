@@ -151,7 +151,6 @@
     <plugin name="cordova-plugin-camera" spec="https://github.com/apache/cordova-plugin-camera.git" />
 	<plugin name="phonegap-plugin-speech-synthesis" spec="https://github.com/macdonst/SpeechSynthesisPlugin" />
 	<plugin name="cordova-plugin-background-mode" />
-	<plugin name="cordova-plugin-buildinfo" spec="https://github.com/lynrin/cordova-plugin-buildinfo" />
 	
 	<plugin name="cordova-httpd" spec="https://github.com/floatinghotpot/cordova-httpd.git" />
 	

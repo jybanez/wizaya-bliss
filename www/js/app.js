@@ -142,10 +142,18 @@ var App = {
 			this.$body = document.id(window.document.body);
 			this.$head = document.id(window.document.head);
 			
+			this.initializeNetwork();
+			
 			this.$assets = new Array();
 			this.$isLoaded = new Array();
 			
-			App.FileSystem.getInstance('PERSISTENT',{
+			console.log('Welcome!',this.$id,device);
+			if (['android'].contains(device.platform.toLowerCase())) {
+				new App.Interface.Log();	
+			}
+			
+			App.FileSystem.getInstance('TEMPORARY',{
+				base:'/'+this.$id,
 				onReady:function(instance){
 					this.$fileSystem = instance;
 					this.run();
@@ -157,21 +165,106 @@ var App = {
 				}.bind(this)
 			});
 			App.$instance = this;
-			console.log('Welcome!',device);
-			if (['android'].contains(device.platform.toLowerCase())) {
-				new App.Interface.Log();	
+		},
+		initializeNetwork:function(){
+			var networkState = navigator.connection.type;
+
+		    var states = {};
+		    states[Connection.UNKNOWN]  = 'Unknown connection';
+		    states[Connection.ETHERNET] = 'Ethernet connection';
+		    states[Connection.WIFI]     = 'WiFi connection';
+		    states[Connection.CELL_2G]  = 'Cell 2G connection';
+		    states[Connection.CELL_3G]  = 'Cell 3G connection';
+		    states[Connection.CELL_4G]  = 'Cell 4G connection';
+		    states[Connection.CELL]     = 'Cell generic connection';
+		    states[Connection.NONE]     = 'No network connection';
+		    
+		    window.$connection = states[networkState];
+		    window.$isOnline = (window.$connection==Connection.UNKNOWN && device.platform=='browser') || window.$connection!=Connection.NONE;
+		      
+		    console.log(window.$connection,window.$isOnline);
+		    console.log(navigator.connection);
+		    document.addEventListener("offline", function(){
+		    	window.$isOnline = false;
+		    	window.fireEvent('onOffline');
+		    	console.log('App Offline');
+		    }.bind(this), false);
+		    document.addEventListener("online", function(){
+		    	window.$isOnline = true;
+		    	window.fireEvent('onOnline');
+		    	console.log('App Online');
+		    }.bind(this), false);
+		},
+		getFileSystem:function(){
+			return this.$fileSystem;
+		},
+		createOffline:function(onCreate){
+			if (!$defined(this.$offline)) {
+				this.$offline = new Element('div',{'class':'offline'});
+				new Request({
+					method:'get',
+					url:'offline.html',
+					onSuccess:function(response){
+						this.$offlineTemplate = response;
+						onCreate();
+					}.bind(this)
+				}).send();
+			} else {
+				onCreate();
+			}
+		},
+		showOffline:function(message,onRetry){
+			this.createOffline(function(){
+				var button = this.$offline.inject(this.$body).set('html',this.$offlineTemplate.substitute({
+					message:message
+				})).getElement('button');
+				button.addEvent('click',onRetry);
+			}.bind(this));
+		},
+		hideOffline:function(){
+			if ($defined(this.$offline)) {
+				this.$offline.remove();	
 			}
 		},
 		requestData:function(onRequest,onError){
-			new Request({
-				url:this.app,
-				onSuccess:onRequest,
-				onFailure:onError
-			}).send();
+			this.hideOffline();
+			if (window.$isOnline) {
+				this.startSpin('Downloading Updates. Please wait...');
+				new Request({
+					url:this.app,
+					onSuccess:function(result){
+						if ($type(onRequest)=='function'){
+							onRequest(result);
+						}
+						this.stopSpin('Update Complete!');
+					}.bind(this),
+					onFailure:function(xhr){
+						console.log(arguments);
+						switch(xhr.status){
+							case 500:
+								this.showOffline('Unable to connect to Internet. Please check your internet connection.',function(){
+									this.requestData(onRequest,onError);
+								}.bind(this));
+								break;
+							default:
+								if ($type(onError)=='function') {
+									onError();
+								}
+						}
+						this.stopSpin('No Internet Connection','exclamation');
+					}.bind(this)
+				}).send();
+			} else {
+				this.showOffline('Unable to connect to Internet. Please check your internet connection.',function(){
+					this.requestData(onRequest,onError);
+				}.bind(this));
+			}
+			
 		},
 		getData:function(onGet,onError){
 			if (!$defined(this.$data)) {
-				var fileName = this.$id+'.json';
+				//var filePath = '/'+this.$id;
+				var fileName = 'data.json';
 				this.$fileSystem.getEntry('/'+fileName,function(fileEntry){
 					this.$fileSystem.readFile(fileEntry,function(content){
 						if ($type(onGet)=='function') {
@@ -180,7 +273,6 @@ var App = {
 						}
 					}.bind(this),onError);
 				}.bind(this),function(){
-					this.startSpin('Downloading Updates. Please wait...');
 					this.requestData(function(result){			
 						this.$data = Json.decode(result);
 						this.$fileSystem.createFile(this.$fileSystem.getBaseEntry(),{
@@ -194,6 +286,11 @@ var App = {
 						}.bind(this),onError);
 					}.bind(this),onError);
 				}.bind(this));
+
+				//this.$fileSystem.getDirectory(this.$fileSystem.getBaseEntry(),filePath,true,function(dirEntry){
+					
+				//}.bind(this),onError);
+				
 			} else {
 				onGet(this.$data);
 			}
@@ -213,7 +310,7 @@ var App = {
 			this.$spinCounter++;
 			//console.log(this.$spinCounter);
 		},
-		stopSpin:function(message){
+		stopSpin:function(message,icon){
 			if (this.$spinCounter) {
 				this.$spinCounter--;
 				if (!this.$spinCounter) {
@@ -221,14 +318,13 @@ var App = {
 					if (message.length) {
 						this.$spinner
 							.removeClass('loading')
-							.addClass('check')
+							.addClass($pick(icon,'check'))
 							.set('html',message)
 							;	
 					}
 					this.$spinner.removeClass('visible');
 				}	
 			}
-			//console.log(this.$spinCounter);
 		},
 		reset:function(onReset,onError){
 			this.$fileSystem.clear(function(){
@@ -238,13 +334,14 @@ var App = {
 			}.bind(this));
 		},
 		update:function(onUpdate,onError){
-			this.startSpin('Downloading Updates. Please wait...');
 			this.requestData(function(result){
-				this.$fileSystem.createFile(this.$fileSystem.getRoot(),{
+				this.$fileSystem.createFile(this.$fileSystem.getBaseEntry(),{
 					name:'app.json',
 					content:[result]
 				},function(entry){
 					var data = Json.decode(result);
+					var stylesheet = data.stylesheet.toURI(),	
+						javascript = data.script.toURI();
 					new App.Localizer(this.$fileSystem,{
 						overwrite:true,
 						onDownloadComplete:function(){
@@ -252,32 +349,18 @@ var App = {
 							if ($type(onUpdate)=='function') {
 								onUpdate();
 							}
-							this.stopSpin('Update Complete!');	
+							
 						}.bind(this)
 					}).setItems([{
 						source:data.stylesheet,
-						target:this.toLocalURL(data.stylesheet)
+						target:stylesheet.get('directory')+stylesheet.get('file')
 					},{
 						source:data.script,
-						target:this.toLocalURL(data.script)
+						target:javascript.get('directory')+javascript.get('file')
 					}]).download();	
 				}.bind(this),onError);
 			}.bind(this),onError);
 		},
-		/*
-		toLocalURL:function(url){
-			var url = url.toURI();
-			var base = this.$fileSystem.getBase().toURI();
-			url.set('scheme',base.get('scheme'))
-				.set('host',base.get('host'))
-				.set('directory',base.get('directory')+url.get('directory'))
-				;	
-			//return url.toString();
-			//var host = url.toURI().set('directory','').set('file','').set('fragment','').set('query','').toString(),
-			//	path = url.replace(host,base);	 	
-			return path;
-		},
-		*/
 		loadAsset:function(source,onLoad){
 			var url = source.toURI();
 			var target = url.get('directory')+url.get('file');
@@ -285,9 +368,14 @@ var App = {
 			this.$fileSystem.getEntry(target,function(fileEntry){
 				onLoad(fileEntry.toURL());
 			}.bind(this),function(){
+				onLoad(source);
+				this.startSpin('Downloading Updates. Please wait...');
 				new App.Localizer(this.$fileSystem,{
 					onSave:function(item,fileEntry){
-						onLoad(fileEntry.toURL());
+						//onLoad(fileEntry.toURL());
+					}.bind(this),
+					onDownloadComplete:function(){
+						this.stopSpin('Updates Complete!');
 					}.bind(this)
 				}).setItems([{
 					source:source,
@@ -320,8 +408,7 @@ var App = {
 								//return;
 								new Element('script',{
 									type:'text/javascript'
-								}).inject(head).set('text',data.inlineScripts);
-								this.stopSpin('Update Complete!');	
+								}).inject(head).set('text',data.inlineScripts);	
 							}.bind(this)
 						});
 						window.addEvent('onPlatformReady',function(instance){
@@ -354,22 +441,39 @@ var App = {
 	FileSystem:new Class({
 		Implements:[Events,Options],
 		options:{
+			base:'/',
 			quota:100,
 			storage:'PERSISTENT'
 		},
 		initialize:function(options){
 			this.setOptions(options);
-			window.requestFileSystem(window[this.options.storage], this.getQuota(), function (fileSystem) {
+			window.requestFileSystem(LocalFileSystem[this.options.storage], this.getQuota(), function (fileSystem) {
 				console.log('Filesystem Ready',cordova.file);
 				this.$rootEntry = fileSystem.root;
+				this.$base = this.options.storage.toLowerCase()+(this.options.base!='/'?this.options.base:'');
 				
 				console.log('file system open: ' + fileSystem.name);
 				console.log(fileSystem);
-				
-				this.getEntry('/',function(result){
-					this.$baseEntry = result;
-					
+				this.$rootEntry.getDirectory(this.options.base,{
+					create:true
+				},function(dirEntry){
+					console.log('Base Directory',this.options.base,dirEntry);
+					this.$baseEntry = dirEntry;
 					this.fireEvent('onReady',[this]);
+					
+					/*
+					if (this.options.base!='/') {
+						this.getDirectory(dirEntry,this.options.base,true,function(dirEntry){
+							console.log(dirEntry);
+							this.$baseEntry = dirEntry;
+							this.fireEvent('onReady',[this]);
+						}.bind(this));	
+					} else {
+						console.log(dirEntry);
+						this.$baseEntry = dirEntry;
+						this.fireEvent('onReady',[this]);
+					}
+					*/
 				}.bind(this),function(e){
 					console.log(e);
 				}.bind(this));
@@ -428,7 +532,7 @@ var App = {
 			return cordova.file[this.options.storage=='PERSISTENT'?'dataDirectory':'cacheDirectory'];
 		},
 		getBase:function(){
-			return this.options.storage.toLowerCase();
+			return this.$base;
 		},
 		getCDV:function(path){
 			return 'cdvfile://localhost/'+this.getBase()+path;
@@ -763,11 +867,11 @@ $extend(App.Localizer,{
 	        reader.onloadend = function() {
 	        	var base = this.$fileSystem.getBase();
 	        	var oldHost = this.$item.source.toURI().set('directory','').set('file','').toString(),
-					newHost = base; //this.$fileSystem.getRoot().toURL().replace(base,'');	
+					newHost = '/'; //'/'+base+'/'; //this.$fileSystem.getRoot().toURL().replace(base,'');	
 	            var content = reader.result;
 	            var regexp = /url\(\s*(['"]?)(.*?)\1\s*\)/ig; //RegExp('url\(\'([^\']+)\'\)','gi');
 				var urls = new Array();
-				var exts = ['eot','woff','woff2','ttf','svg'];
+				var exts = ['eot','woff','woff2','ttf','svg','png','jpg','gif'];
 				while((match=regexp.exec(content))!==null) {
 					var uri = match[2].toURI();
 					var file = uri.get('file');
@@ -779,10 +883,11 @@ $extend(App.Localizer,{
 							target:match[2].replace(oldHost,newHost),
 							url:base+match[2].replace(oldHost,newHost)
 						};
-						//console.log(item);
+						console.log(item);
 						urls.push(item);
 					}
 				}
+				console.log('CSS Assets',Json.encode(urls));
 				if (urls.length) {
 					new App.Localizer(this.$fileSystem,{
 						overwrite:this.options.overwrite,
@@ -815,7 +920,7 @@ $extend(App.Localizer,{
 		        	var source = this.$item.source.toURI();
 		        	
 		        	var oldHost = this.$item.source.toURI().set('directory','').set('file','').toString(),
-						newHost = base; //this.$fileSystem.getRoot().toURL().replace(base,'');	
+						newHost = '/'+base+'/'; //this.$fileSystem.getRoot().toURL().replace(base,'');	
 		            var content = reader.result;
 		            var regexp = /\/\/\# sourceMappingURL=(.*?)\.map/igm; //RegExp('url\(\'([^\']+)\'\)','gi');
 					var urls = new Array();

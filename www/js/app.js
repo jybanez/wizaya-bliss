@@ -249,6 +249,13 @@ var App = {
 			}
 		},
 		reset:function(onReset,onError){
+			if (typeof(window.localStorage) !== "undefined") {
+				try {
+					window.localStorage.clear();	
+				} catch(e){
+					
+				}
+			}
 			this.$fileSystem.clear(function(){
 				if (confirm('App will now restart. Press OK to continue.')) {
 					location.reload();

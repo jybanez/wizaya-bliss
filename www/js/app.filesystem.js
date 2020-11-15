@@ -67,26 +67,25 @@ App.FileSystem=new Class({
 	},
 	clear:function(onClear,onError){
 		this.readDirectory(this.getBaseEntry(),false,function(entries){
-			console.log('Clear',entries.length);
-			if (entries.length) {
-				entries.forEach(function(entry){
-					if (entry.isFile) {
-						this.deleteFile(entry,function(){
-							console.log('File Deleted',arguments);
-							this.isEmpty(onClear); 
-						}.bind(this),onError);
-					} else {
-						this.deleteDirectory(entry,function(){
-							console.log('Directory Deleted',arguments);
-							this.isEmpty(onClear);
-						}.bind(this),onError);
-					}
-				}.bind(this));	
-			} else if ($type(onClear)=='function') {
-				onClear();
-			}	
+			this.deleteEntries(entries,onClear,onError);	
 		}.bind(this),onError);
 		return this;
+	},
+	deleteEntries:function(entries,onComplete,onError){
+		if (entries.length) {
+			var entry = entries.shift();
+			if (entry.isFile) {
+				this.deleteFile(entry,function(){
+					this.deleteEntries(entries,onComplete,onError); 
+				}.bind(this),onError);
+			} else {
+				this.deleteDirectory(entry,function(){
+					this.deleteEntries(entries,onComplete,onError);
+				}.bind(this),onError);
+			}
+		} else if ($type(onComplete)=='function') {
+			onComplete();
+		}
 	},
 	getStorageDirectory:function(){
 		return cordova.file[this.options.storage=='PERSISTENT'?'dataDirectory':'cacheDirectory'];

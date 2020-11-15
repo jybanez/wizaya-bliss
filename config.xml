@@ -12,6 +12,19 @@
     <feature name="http://api.phonegap.com/1.0/network" />
     <feature name="http://api.phonegap.com/1.0/notification" />
     <platform name="ios">
+    	<allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        
+    	<edit-config target="NSPhotoLibraryUsageDescription" file="*-Info.plist" mode="merge">
+			<string>Need to access photo library for uploading photos for your account profile and product inquiries.</string>
+		</edit-config>
+		<edit-config target="NSLocationAlwaysUsageDescription" file="*-Info.plist" mode="merge">
+			<string>Need location access to find shops nearby</string>
+		</edit-config>
+		<edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
+			<string>Need location access to find shops nearby</string>
+		</edit-config>
+		
 		<icon src="res/icon/ios/icon-1024.png" width="1024" height="1024"/>
         <icon src="res/icon/ios/icon-small.png" width="29" height="29"/>
         <icon src="res/icon/ios/icon-small@2x.png" width="58" height="58"/>
@@ -65,11 +78,20 @@
         -->
 	</platform>
 	<platform name="android">
+		<allow-intent href="market:*" />
+		
+		<preference name="android-minSdkVersion" value="22" />
+		<preference name="android-targetSdkVersion" value="29" />
+		<preference name="SplashMaintainAspectRatio" value="true" />
+		<preference name="SplashShowOnlyFirstTime" value="true" />
+		
+		<preference name="AndroidLaunchMode" value="singleTask"/>
+		<preference name="AndroidPersistentFileLocation" value="Compatibility" />
+
 		<config-file parent="/*" target="AndroidManifest.xml">
 			<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 		</config-file>
-		<preference name="SplashMaintainAspectRatio" value="true" />
-		<preference name="SplashShowOnlyFirstTime" value="true" />
+			
 		<icon density="ldpi" src="res/icon/android/ldpi.png"/>
         <icon density="mdpi" src="res/icon/android/mdpi.png"/>
         <icon density="hdpi" src="res/icon/android/hdpi.png"/>
@@ -96,6 +118,8 @@
         -->
 	</platform>
 	<platform name="windows">
+		<preference name="windows-target-version" value="10.0" />
+		
 		<icon src="res/icon/windows/storelogo.png" target="StoreLogo"/>
         <icon src="res/icon/windows/smalllogo.png" target="Square30x30Logo"/>
         <icon src="res/icon/windows/Square44x44Logo.png" target="Square44x44Logo"/>
@@ -117,22 +141,10 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
-    <platform name="android">
-        <allow-intent href="market:*" />
-    </platform>
-    <platform name="ios">
-        <allow-intent href="itms:*" />
-    </platform>
-    <platform name="ios">
-        <allow-intent href="itms-apps:*" />
-    </platform>
 	
-	<preference name="windows-target-version" value="10.0" />
 	<!--
 	<preference name="phonegap-version" value="cli-9.0.0" />
 	-->
-	<preference name="AndroidLaunchMode" value="singleTask"/>
-	<preference name="AndroidPersistentFileLocation" value="Compatibility" />
 	
 	<plugin name="cordova-plugin-statusbar"/>
     <plugin name="cordova-plugin-geolocation" />
@@ -156,13 +168,5 @@
 	
 	<plugin name="cordova-httpd" spec="https://github.com/floatinghotpot/cordova-httpd.git" />
 	
-	<edit-config target="NSPhotoLibraryUsageDescription" file="*-Info.plist" mode="merge">
-		<string>Need to access photo library for uploading photos for your account profile and product inquiries.</string>
-	</edit-config>
-	<edit-config target="NSLocationAlwaysUsageDescription" file="*-Info.plist" mode="merge">
-		<string>Need location access to find shops nearby</string>
-	</edit-config>
-	<edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
-		<string>Need location access to find shops nearby</string>
-	</edit-config>
+	
 </widget>

@@ -128,7 +128,9 @@
     </platform>
 	
 	<preference name="windows-target-version" value="10.0" />
+	<!--
 	<preference name="phonegap-version" value="cli-9.0.0" />
+	-->
 	<preference name="AndroidLaunchMode" value="singleTask"/>
 	<preference name="AndroidPersistentFileLocation" value="Compatibility" />
 	
